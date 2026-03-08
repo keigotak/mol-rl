@@ -1,0 +1,54 @@
+# RL Configuration for GTX 1080 (8GB VRAM)
+# Usage: python scripts/train_rl.py (reads defaults, or pass args)
+
+# Data / Tokenizer
+data_dir: data/processed
+max_length: 128
+
+# Models
+sft_checkpoint: checkpoints/sft/best    # SFT model = initial policy + frozen reference
+model_name: gpt2
+
+# RL Training
+method: reinforce                       # reinforce (with RLOO baseline)
+steps: 2000                             # Total RL update steps
+batch_size: 64                          # Molecules generated per step
+mini_batch_size: 16                     # Gradient accumulation chunk
+lr: 1.0e-5                              # Lower than SFT
+warmup_ratio: 0.05
+weight_decay: 0.01
+max_grad_norm: 1.0
+
+# RLOO
+rloo_k: 4                              # Samples per "group" for leave-one-out baseline
+
+# KL Penalty
+kl_coef: 0.2                           # KL penalty coefficient (beta)
+kl_target: 6.0                         # Adaptive KL target (0 = fixed beta)
+
+# Reward
+reward_weights:
+  qed: 0.5
+  sa: 0.5
+invalid_reward: 0.0
+
+# Generation
+temperature: 1.0
+top_k: 0
+top_p: 0.95
+
+# Memory optimization (for 8GB GPU)
+fp16: true
+gradient_checkpointing: true
+
+# Evaluation
+eval_every: 50                          # Evaluate every N steps
+n_eval_samples: 500
+
+# Logging
+log_every: 10
+wandb_project: null                     # Set to "mol-rl-bench" to enable
+
+# Output
+output_dir: checkpoints/rl
+seed: 42
