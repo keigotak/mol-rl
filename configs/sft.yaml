@@ -27,6 +27,6 @@ n_generate: 500
 
 # Output
 output_dir: checkpoints/sft
-wandb_project: null        # Set to "mol-rl-bench" to enable
+wandb_project: null        # Set to "mol-rl" to enable
 
 seed: 42

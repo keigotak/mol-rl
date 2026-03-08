@@ -47,7 +47,7 @@ n_eval_samples: 500
 
 # Logging
 log_every: 10
-wandb_project: null                     # Set to "mol-rl-bench" to enable
+wandb_project: null                     # Set to "mol-rl" to enable
 
 # Output
 output_dir: checkpoints/rl

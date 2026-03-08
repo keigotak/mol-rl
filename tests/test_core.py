@@ -1,5 +1,5 @@
 """
-Unit tests for mol-rl-bench core components.
+Unit tests for mol-rl core components.
 
 Run: pytest tests/ -v
 """

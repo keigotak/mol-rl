@@ -1,80 +1,61 @@
-# mol-rl-bench
+# mol-rl
 
-**Systematic Comparison of PPO, RLOO, and DPO for Molecular Generation**
+**Molecular Generation with Reinforcement Learning**
 
-A benchmark comparing reinforcement learning and preference optimization methods for steering molecular language models toward generating drug-like molecules with desirable properties.
-
-## Overview
-
-This project fine-tunes a GPT-2 language model on [SELFIES](https://github.com/aspuru-guzik-group/selfies) molecular representations, then applies three post-training methods to optimize for drug-likeness (QED), synthetic accessibility (SA), and binding affinity (AutoDock Vina):
-
-| Method | Type | Key Advantage |
-|--------|------|---------------|
-| **PPO** | Online RL (policy gradient + value function) | Well-established, flexible reward shaping |
-| **RLOO** | Online RL (leave-one-out baseline) | No value head → lower memory, competitive performance |
-| **DPO** | Preference optimization | No reward model at train time, stable training |
+Fine-tunes a GPT-2 language model on [SELFIES](https://github.com/aspuru-guzik-group/selfies) molecular representations, then optimizes for drug-likeness (QED) and synthetic accessibility (SA) via REINFORCE with RLOO baseline.
 
 ## Quick Start
 
-### 1. Setup
-
 ```bash
-git clone https://github.com/<your-username>/mol-rl-bench.git
-cd mol-rl-bench
+git clone https://github.com/keigotak/mol-rl.git
+cd mol-rl
 pip install -r requirements.txt
+pip install -e .
 ```
 
-### 2. Prepare Data
+Or run everything on cloud:
 
 ```bash
-python -m mol_rl.data.prepare_data --output_dir data/processed
+bash scripts/run_cloud.sh all
 ```
 
-Downloads the MOSES benchmark (~1.9M drug-like molecules from ZINC), converts to SELFIES, builds vocabulary.
-
-### 3. Train SFT Model
+### Step by Step
 
 ```bash
-# Default settings (GTX 1080 / 8GB VRAM friendly)
+# 1. Prepare data (downloads MOSES benchmark, ~200K molecules)
+python -m mol_rl.data.prepare_data --output_dir data/processed --max_molecules 200000
+
+# 2. SFT training (GTX 1080 / 8GB VRAM friendly)
 python scripts/train_sft.py --fp16 --gradient_checkpointing
 
-# Quick test run
-python scripts/train_sft.py --debug
-```
+# 3. RL optimization (REINFORCE + RLOO baseline)
+python scripts/train_rl.py --fp16 --gradient_checkpointing
 
-### 4. RL / DPO Optimization (Week 2-3)
-
-```bash
-# Coming soon
-python scripts/train_rl.py --method ppo --config configs/ppo.yaml
-python scripts/train_rl.py --method rloo --config configs/rloo.yaml
-python scripts/train_rl.py --method dpo --config configs/dpo.yaml
+# 4. Evaluate
+python scripts/evaluate.py --checkpoint checkpoints/rl/best --data_dir data/processed
 ```
 
 ## Project Structure
 
 ```
-mol-rl-bench/
-├── configs/              # YAML configs for each experiment
+mol-rl/
+├── configs/              # YAML configs (sft.yaml, rl.yaml)
 ├── data/                 # Data download and preprocessing
 ├── src/mol_rl/
 │   ├── data/             # Dataset, tokenizer, SELFIES utilities
-│   ├── models/           # Reward functions
-│   ├── trainers/         # SFT, PPO, RLOO, DPO trainer wrappers
-│   └── eval/             # Evaluation metrics, visualization
+│   ├── models/           # Reward functions (QED, SA)
+│   ├── trainers/         # REINFORCE/RLOO trainer
+│   └── eval/             # Evaluation metrics
 ├── scripts/              # Entry-point scripts
-├── notebooks/            # Analysis and figure generation
-├── tests/                # Unit tests
-└── paper/                # LaTeX source for arXiv preprint
+└── tests/                # Unit tests
 ```
 
 ## Reward Functions
 
 - **QED** (Quantitative Estimate of Drug-likeness): Continuous [0,1] score from RDKit
 - **SA Score** (Synthetic Accessibility): Inverted and normalized to [0,1]
-- **Docking Score** (AutoDock Vina): Binding affinity to target protein (optional)
 
-Combined reward: `R = w₁·QED + w₂·SA + w₃·Docking`
+Combined reward: `R = w_qed * QED + w_sa * SA`
 
 ## Evaluation Metrics
 
@@ -83,27 +64,13 @@ Combined reward: `R = w₁·QED + w₂·SA + w₃·Docking`
 | Validity | % of generated SELFIES decoding to valid molecules |
 | Uniqueness | % unique among valid generations |
 | Novelty | % not present in training set |
+| Diversity | Internal diversity (pairwise Tanimoto distance) |
 | Mean QED | Average drug-likeness score |
-| IntDiv | Internal diversity (pairwise Tanimoto distance) |
-| KL Divergence | Distribution shift from SFT reference |
 
-## GPU Requirements
+## Tests
 
-| Task | VRAM | Recommended GPU |
-|------|------|-----------------|
-| SFT | ~8 GB | GTX 1080+ |
-| DPO | ~12-16 GB | RTX 3090+ |
-| RLOO (K=4) | ~16-20 GB | RTX 4090 / A100 |
-| PPO | ~20-24 GB | A100 40GB |
-
-## Citation
-
-```
-@article{mol-rl-bench-2026,
-  title={PPO, RLOO, or DPO? A Systematic Comparison of Post-Training Methods for Molecular Generation},
-  author={Keigo},
-  year={2026}
-}
+```bash
+pytest tests/ -v
 ```
 
 ## License

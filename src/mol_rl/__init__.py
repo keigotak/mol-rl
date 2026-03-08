@@ -1,3 +1,3 @@
-"""mol-rl-bench: Systematic comparison of RL/DPO methods for molecular generation."""
+"""mol-rl: Molecular generation with reinforcement learning."""
 
 __version__ = "0.1.0"
