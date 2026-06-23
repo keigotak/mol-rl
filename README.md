@@ -1,8 +1,10 @@
 # mol-rl
 
-**Molecular Generation with Reinforcement Learning**
+Independent exploratory project on reinforcement learning and preference optimization for molecular generation.
 
-Fine-tunes a GPT-2 language model on [SELFIES](https://github.com/aspuru-guzik-group/selfies) molecular representations, then optimizes for drug-likeness (QED) and synthetic accessibility (SA) via REINFORCE with RLOO baseline.
+This project is not part of my professional work. My professional background is primarily biology-facing biomedical AI, including biomedical language models, scientific evidence synthesis, target discovery support, neoantigen prediction, and medical AI systems.
+
+This repository explores molecular generation as a compact environment for studying RL-style optimization, reward design, and generative model evaluation. It fine-tunes a GPT-2 language model on [SELFIES](https://github.com/aspuru-guzik-group/selfies) molecular representations, then optimizes for drug-likeness (QED) and synthetic accessibility (SA) via REINFORCE with RLOO baseline.
 
 ## Quick Start
 
